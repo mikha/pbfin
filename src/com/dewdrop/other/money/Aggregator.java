@@ -123,7 +123,15 @@ public class Aggregator {
 			System.exit(-1);
 			return;
 		}
-		Aggregator aggregator = aggregateCountries(args[0], COUNTRY_IDS);
+		int seasonId = -1;
+		if(args.length > 1) {
+			try {
+				seasonId = Integer.parseInt(args[1]);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
+		}
+		Aggregator aggregator = aggregateCountries(args[0], seasonId, COUNTRY_IDS);
 		
 		System.out.println(aggregator.printClubStats());
 		System.out.println();
@@ -132,17 +140,23 @@ public class Aggregator {
 		System.out.println(aggregator.printCountryStats());
 	}
 	
-	protected static Aggregator aggregateCountries(String sessionCookie, int... ids) throws Exception {
+	protected static Aggregator aggregateCountries(String sessionCookie, int seasonId, int... ids) throws Exception {
 		Aggregator aggregator = new Aggregator();
 		for (int id : ids) {
 			for (Map.Entry<Finances.Income, String> entry : INCOME_SUFFIX.entrySet()) {
 				String url = "http://pbliga.com/" + entry.getValue() + "&country=" + id;
+				if (seasonId > 0) {
+					url += "&sezon=" + seasonId;
+				}
 				Set<ClubInfoWithValue> stats = StatsParser.parse(DataProvider.readUrl(url, sessionCookie));
 				aggregator.addIncomeStats(entry.getKey(), stats);
 			}
 			
 			for (Map.Entry<Finances.Expense, String> entry : EXPENSE_SUFFIX.entrySet()) {
 				String url = "http://pbliga.com/" + entry.getValue() + "&country=" + id;
+				if (seasonId > 0) {
+					url += "&sezon=" + seasonId;
+				}
 				Set<ClubInfoWithValue> stats = StatsParser.parse(DataProvider.readUrl(url, sessionCookie));
 				aggregator.addExpenseStats(entry.getKey(), stats);
 			}
